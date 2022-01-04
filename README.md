@@ -2,7 +2,7 @@
 랜덤 뽑기
 
 # 경고
-라이센스를 위반하면 안됩니다.
+코드를 수정하더라도, 라이센스를 위반하면 안됩니다.
 
 # 뱃지
 ![build](https://img.shields.io/github/checks-status/poolmanager/BokBulBok/main)
