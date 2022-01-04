@@ -1,25 +1,56 @@
 import random, os, sys
 
-from contextlib import closing
+def pass_exc(func, *args, **kwargs):
+    def wrap():
+        try:
+            func(*args, **kwargs)
+        except Exception as error:
+            pass
 
-def clear():
+    return wrap
+
+def mopen(*args, **kwargs):
+    """Python builtin open function but it has auto close function."""
+    with open(*args, **kwargs) as f:
+        mopen.content = f.read()
+        f.close()
+        return mopen
+
+@pass_exc
+def cls():
+    """Clear terminal texts using command line."""
     if sys.platform.startswith("win"):
         os.system("cls")
     else:
         os.system("clear")
 
-def load_from_file():
-    import tkinter, tkinter.messagebox, tkinter.filedialog
+def loadff():
+    """Asking for open file and load content."""
+    from tkinter import (
+        Tk,
+        messagebox as msgbx,
+        filedialog as fdlog,
+    )
 
-    root = tkinter.Tk()
+    root = Tk()
     root.withdraw()
 
-    tkinter.messagebox.showwarning("경고", "파일에서 불러오는 옵션들은 들여쓰기로 구분이 되어있어야 합니다!")
-    
-    t = tkinter.filedialog.askopenfilename()
+    msgbx.showwarning("경고", "옵션들은 들여쓰기로 구분 되어있어야 합니다!")
+    p = fdlog.askopenfilename()
 
-    with closing(open(t, "r", encoding="utf-8")) as f:
-        return f.read().splitlines()
+    return str(mopen(p, "r", encoding="utf-8").content)
+
+def stripiter(target: list):
+    """Striping all of texts in list."""
+    out = []
+    for txt in target:
+        out.append(
+            str(txt)
+            .rstrip()
+            .lstrip()
+        )
+
+    return out
 
 class Bokbulbok:
     def __init__(self, number: int, options: list):
@@ -43,45 +74,42 @@ class Bokbulbok:
         self.nbrs = nbrs
         self.opts = options
 
-    def start(self):
-        def random_get_and_delete(ValueList: list):    
-            r = random.choice(ValueList)
-            ValueList.remove(r)
-            return r
+    def result(self):
+        def Mix(target: list, out: list):   
+            for _ in range(len(target)): 
+                r = random.choice(target)
+                target.remove(r)
+                out.append(r)
 
         b = []
 
-        for i in range(len(self.nbrs)):
-            b.append(random_get_and_delete(self.opts))
+        Mix(self.opts, b)
+
+        out = []
 
         for i in range(len(self.nbrs)):
-            if i == 0:
-                print("결과: ")
+            out.append(f"{i + 1}: {b[i]}")
 
-            print(f"{i + 1}: {b[i]}")
+        return out
 
-        while True:
-            sys.stdout.write("\b\r")
+cls()
 
-clear()
-_cnts = input("옵션의 갯수를 입력하세요\n>>> ")
+cnts = input("옵션의 갯수를 입력하세요\n>>> ")
+opts = input("옵션을 입력하세요. 쉼표로 구분해주세요.\n아니면 '파일 불러오기'를 입력하여 파일을 불러오세요.\n>>> ")
 
-_opts = input("옵션을 입력하세요. 쉼표로 구분해주세요.\n아니면 '파일 불러오기'를 입력하여 파일을 불러오세요.\n>>> ")
-
-if _opts == "파일 불러오기":
-    _opts = load_from_file()
+if opts == "파일 불러오기":
+    opts = loadff().splitlines()
 else:
-    _opts = _opts.split(",")
+    opts = opts.split(",")
 
-_striped_opts = []
+clean = []
 
-for s in _opts:
-    _striped_opts.append(s.lstrip().rstrip())
+clean.extend(stripiter(opts))
+opts.clear()
+opts.extend(clean)
 
-_opts.clear()
-_opts.extend(_striped_opts)
+cls()
 
-clear()
-
-base = Bokbulbok(int(_cnts), _opts)
-base.start()
+bokbulbok = Bokbulbok(int(cnts), opts)
+out = bokbulbok.result()
+print("결과:\n" + "\n".join(out))
